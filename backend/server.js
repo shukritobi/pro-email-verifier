@@ -1,12 +1,20 @@
 import express from 'express';
 import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { verifyEmail } from './verifier.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
+
+// Serve the compiled frontend dashboard
+app.use(express.static(path.join(__dirname, '../frontend/dist')));
 
 app.post('/api/verify', async (req, res) => {
     const { email } = req.body;
@@ -25,6 +33,11 @@ app.post('/api/verify', async (req, res) => {
     }
 });
 
+// Any other route should serve the React app (SPA support)
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
+});
+
 app.listen(PORT, () => {
-    console.log(`Email Verifier API running on http://localhost:${PORT}`);
+    console.log(`Email Verifier API & Dashboard running on http://localhost:${PORT}`);
 });
